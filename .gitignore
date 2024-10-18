@@ -1,7 +1,4 @@
 .vscode
 .idea
 
-main
-
-asm_playground
-asm_playground/*
+bfc
