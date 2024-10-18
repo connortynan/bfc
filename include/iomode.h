@@ -8,8 +8,10 @@
 #include <termios.h>
 #endif
 
+#ifdef _WIN32
+assert(false && "iomode.h not implemented for Windows (yet)")
+#else
 // Linux/Unix-specific function to disable canonical mode and echo
-#ifndef _WIN32
 void enableRawMode(struct termios *orig_termios)
 {
     struct termios raw;

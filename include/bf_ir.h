@@ -24,7 +24,7 @@ typedef struct
     enum BF_OPERATOR op;
 
     // For most operators represents the number of time it is repeated in a row.
-    // For [ and ], represents the spot to go to
+    // For [ and ], represents the operation to go to
     unsigned long operand;
 } bf_operation;
 
@@ -74,7 +74,11 @@ bool generate_bf_ops(bf_program *prog, FileParser *parser, size_t ops_capacity)
 
         case OP_JIZ: // [
         {
-            assert(stack_ptr < _JUMP_STACK_SIZE);
+            if (stack_ptr >= _JUMP_STACK_SIZE)
+            {
+                fputs("Stack overflow\n", stderr);
+                return false;
+            }
             jump_stack[stack_ptr++] = prog->ops_len;
             op_token = next_token(parser, bf_tokens);
             break;
@@ -82,7 +86,11 @@ bool generate_bf_ops(bf_program *prog, FileParser *parser, size_t ops_capacity)
 
         case OP_JNZ: // ]
         {
-            assert(stack_ptr > 0);
+            if (stack_ptr <= 0)
+            {
+                fputs("Stack underflow\n", stderr);
+                return false;
+            }
             unsigned long pair_idx = jump_stack[--stack_ptr];
             prog->ops[pair_idx].operand = prog->ops_len; // Make '[' op point to the ']' operator
             op.operand = pair_idx;                       // Make this (']') op point to the '[' operator
@@ -97,22 +105,23 @@ bool generate_bf_ops(bf_program *prog, FileParser *parser, size_t ops_capacity)
     return true;
 }
 
-bf_program create_bf_prog_from_file(char *file_path, size_t ops_capacity)
+bool generate_bf_prog_from_file(bf_program *prog, char *file_path, size_t ops_capacity)
 {
     FileParser file = {0};
-
-    bf_program ret = {0};
 
     if (!from_file(file_path, &file))
     {
         fputs("Error opening file", stderr);
-        return ret;
+        return false;
     }
 
-    if (!generate_bf_ops(&ret, &file, ops_capacity))
+    if (!generate_bf_ops(prog, &file, ops_capacity))
+    {
         fputs("Error parsing brainf file", stderr);
+        return false;
+    }
 
-    return ret;
+    return true;
 }
 
 #endif // BF_IR_H

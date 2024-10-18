@@ -2,7 +2,6 @@
 #define BF_INTER_H
 
 #include "bf_ir.h"
-#include "iomode.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -27,11 +26,6 @@ void bf_print_ops(const bf_program *prog)
 
 bool bf_run(const bf_program *prog, size_t memory_size)
 {
-    struct termios orig_termios;
-
-    // Enable raw mode
-    enableRawMode(&orig_termios);
-
     unsigned char *prog_memory = (unsigned char *)malloc(memory_size);
     memset(prog_memory, 0, memory_size);
 
@@ -48,7 +42,6 @@ bool bf_run(const bf_program *prog, size_t memory_size)
             if (ptr < op.operand)
             {
                 fputs("  ERROR IN BF: memory underflow", stderr);
-                disableRawMode(&orig_termios);
                 return false;
             }
             ptr -= op.operand;
@@ -59,7 +52,6 @@ bool bf_run(const bf_program *prog, size_t memory_size)
             if (ptr >= memory_size - op.operand)
             {
                 fputs("  ERROR IN BF: memory overflow", stderr);
-                disableRawMode(&orig_termios);
                 return false;
             }
             ptr += op.operand;
@@ -105,7 +97,6 @@ bool bf_run(const bf_program *prog, size_t memory_size)
         }
         }
     }
-    disableRawMode(&orig_termios);
     return true;
 }
 
